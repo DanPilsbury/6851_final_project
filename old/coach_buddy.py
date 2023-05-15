@@ -3,8 +3,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import speech_recognition as sr
 
-from constants import position_order, team_endpoints
-from draw_region import display_canvas
+from old.constants import position_order, team_endpoints
+from old.draw_region import display_canvas
 
 
 def get_roster(team):
