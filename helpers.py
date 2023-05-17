@@ -19,6 +19,31 @@ outcomes_dict = {
 }
 
 
+demo_locations = {
+    0: {
+        # from the top left corner of the court to the basket
+        "start_loc": [-32, 22],
+        "end_loc": [-41, 0],
+    },
+    1: {
+        # from the center of the three point line to the basket on left side of court
+        "start_loc": [-18, 0],
+        "end_loc": [-41, 0],
+    },
+}
+
+demo_shot_ranges = {
+    0: {
+        "x_range": [-20, -10],
+        "y_range": [-10, 10],
+    },
+    1: {
+        "x_range": [-45, -30],
+        "y_range": [20, 25],
+    },
+}
+
+
 def draw_basketball_court(fig):
     min_x = -47
     max_x = 47
@@ -416,6 +441,59 @@ def get_shots_fig(season, player_name, start_loc, end_loc):
     x_range = min(start_loc[0], end_loc[0]), max(start_loc[0], end_loc[0])
     y_range = min(start_loc[1], end_loc[1]), max(start_loc[1], end_loc[1])
     df = get_shots_dataframe(season, player_name, x_range, y_range)
+    makes = df[df["outcome"] == True].shape[0]
+    shots = df.shape[0]
+    fg_pct = makes / shots
+    fig = px.scatter(
+        df, x="x", y="y", color="outcome", hover_data=["player_name", "season"]
+    )
+    fig.update_layout(title=f"{player_name} FG%: {fg_pct:.2f}, {makes}/{shots}")
+
+    fig.update_traces(marker_size=3)
+    draw_basketball_court(fig)
+    fig.update_layout(dragmode="select")
+    return fig
+
+
+def get_demo_graph_data(stat_type, start_loc, end_loc):
+    match stat_type:
+        case "drives":
+            return get_demo_drives_data(start_loc, end_loc)
+        case "shots":
+            return get_demo_shots_fig(start_loc, end_loc)
+
+
+def get_demo_drives_data(start_loc, end_loc):
+    # get closest distance start loc from demo_locations
+    start_0 = demo_locations[0]["start_loc"]
+    start_1 = demo_locations[1]["start_loc"]
+
+    start_0_dist = distance.euclidean(start_loc, start_0)
+    start_1_dist = distance.euclidean(start_loc, start_1)
+
+    data_index = 0 if start_0_dist < start_1_dist else 1
+
+    # return data from pickle
+    with open(f"data/graph_data_{data_index}.pkl", "rb") as f:
+        graph_data = pickle.load(f)
+
+    return graph_data
+
+
+def get_demo_shots_fig(start_loc, end_loc):
+    player_name = "Kevin Durant"
+    x_range = min(start_loc[0], end_loc[0]), max(start_loc[0], end_loc[0])
+    y_range = min(start_loc[1], end_loc[1]), max(start_loc[1], end_loc[1])
+
+    # get closest distance start loc from demo_shot_ranges
+    x_range_0_dist = abs(x_range[0] - demo_shot_ranges[0]["x_range"][0])
+    x_range_1_dist = abs(x_range[0] - demo_shot_ranges[1]["x_range"][0])
+
+    index = 0 if x_range_0_dist < x_range_1_dist else 1
+
+    with open(f"data/shots_dataframe_kevin_durant_{index}.pkl", "rb") as f:
+        df = pickle.load(f)
+
     makes = df[df["outcome"] == True].shape[0]
     shots = df.shape[0]
     fg_pct = makes / shots

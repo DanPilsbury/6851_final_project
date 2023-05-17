@@ -10,6 +10,8 @@ import speech_recognition as sr
 
 from helpers import *
 
+DEMO_MODE = True
+
 
 def record_audio():
     r = sr.Recognizer()
@@ -170,7 +172,12 @@ def display_selected_data(selectedData):
         args["end_loc"] = (x[-1], y[-1])
 
         global graph_data
-        graph_data = get_graph_data(**args)
+        if DEMO_MODE:
+            graph_data = get_demo_graph_data(
+                args["stat_type"], args["start_loc"], args["end_loc"]
+            )
+        else:
+            graph_data = get_graph_data(**args)
         fig = get_drive_animation(graph_data)
 
         # add a line trace for selected points
@@ -187,7 +194,13 @@ def display_selected_data(selectedData):
         y = [box_points["y"][0], box_points["y"][1]]
         args["start_loc"] = (x[0], y[0])
         args["end_loc"] = (x[1], y[1])
-        fig = get_graph_data(**args)
+        if DEMO_MODE:
+            fig = get_demo_graph_data(
+                args["stat_type"], args["start_loc"], args["end_loc"]
+            )
+        else:
+            fig = get_graph_data(**args)
+        # fig = get_graph_data(**args)
         # print(selectedData)
         return fig, json.dumps(selectedData)
 
